@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Khối hiển thị kết quả AI, dùng chung cho bảng nổi và màn hình chính. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/loadingRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingVertical="10dp"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:indeterminateTint="@color/pink_deep" />
+
+        <TextView
+            android:id="@+id/loadingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/ink_muted"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/errorText"
+        style="@style/ResultBox"
+        android:background="@drawable/box_error"
+        android:textColor="@color/error_ink" />
+
+    <TextView
+        android:id="@+id/moodText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/chip_bg"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:textColor="@color/ink"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/readText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/ink"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/answerTitle"
+        style="@style/ResultHeading"
+        android:text="@string/answer_title" />
+
+    <TextView
+        android:id="@+id/answerText"
+        style="@style/ResultBox"
+        android:background="@drawable/box_answer"
+        android:textColor="@color/answer_ink" />
+
+    <TextView
+        android:id="@+id/suggestTitle"
+        style="@style/ResultHeading"
+        android:text="@string/suggest_title" />
+
+    <LinearLayout
+        android:id="@+id/suggestions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+    <TextView
+        android:id="@+id/warningText"
+        style="@style/ResultBox"
+        android:background="@drawable/box_warn"
+        android:textColor="@color/warn_ink" />
+
+    <TextView
+        android:id="@+id/tipsTitle"
+        style="@style/ResultHeading"
+        android:text="@string/tips_title" />
+
+    <TextView
+        android:id="@+id/tipsText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:lineSpacingExtra="3dp"
+        android:textColor="@color/ink"
+        android:textSize="14sp"
+        android:visibility="gone" />
+</LinearLayout>

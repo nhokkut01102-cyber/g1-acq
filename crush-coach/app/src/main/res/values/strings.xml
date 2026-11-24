@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Crush Coach</string>
+    <string name="accessibility_label">Crush Coach – bong bóng gợi ý</string>
+    <string name="accessibility_desc">Crush Coach dùng Trợ năng để: hiện bong bóng nổi, đọc chữ trong cuộc trò chuyện đang mở và chụp màn hình (chỉ khi bong bóng đang BẬT) để AI gợi ý câu trả lời, và chèn câu bạn chọn vào ô chat. Nội dung chỉ được gửi tới Anthropic (Claude) khi bạn bật bong bóng. Crush Coach không lưu lại tin nhắn của bạn.</string>
+
+    <string name="tagline">Trợ lý nhắn tin với người thương 💘</string>
+    <string name="step_ai">1 · Kết nối AI</string>
+    <string name="step_ai_desc">Crush Coach dùng Claude của Anthropic. Tạo API key tại console.anthropic.com rồi dán vào đây. Key chỉ lưu trên máy bạn.</string>
+    <string name="api_key">API key (sk-ant-…)</string>
+    <string name="get_key">Lấy API key</string>
+    <string name="model">Model AI</string>
+
+    <string name="step_permission">2 · Cấp quyền Trợ năng</string>
+    <string name="step_permission_desc">Bật \"Crush Coach – bong bóng gợi ý\" trong Cài đặt → Trợ năng. Quyền này giúp app vẽ bong bóng, đọc tin nhắn trên màn hình và chèn câu trả lời vào ô chat.</string>
+    <string name="restricted_hint">Nếu mục này bị mờ (Android 13 trở lên, cài APK ngoài): Cài đặt → Ứng dụng → Crush Coach → ⋮ (góc phải) → \"Cho phép cài đặt bị hạn chế\", rồi bật lại.</string>
+    <string name="open_accessibility">Mở cài đặt Trợ năng</string>
+    <string name="open_app_info">Mở thông tin ứng dụng</string>
+    <string name="status_on">✅ Đã bật Trợ năng</string>
+    <string name="status_off">⚠️ Chưa bật Trợ năng</string>
+
+    <string name="step_crush">3 · Về crush của bạn</string>
+    <string name="step_crush_desc">Không bắt buộc, nhưng càng rõ thì gợi ý càng hợp.</string>
+    <string name="my_name">Tên của bạn</string>
+    <string name="crush_name">Tên / biệt danh crush</string>
+    <string name="pronouns">Cách xưng hô (vd: anh – em, tớ – cậu)</string>
+    <string name="stage">Hai bạn đang ở giai đoạn nào?</string>
+    <string name="style">Phong cách trả lời bạn thích</string>
+    <string name="notes">Ghi chú về crush (sở thích, tính cách, chuyện đã kể…)</string>
+
+    <string name="step_bubble">4 · Bong bóng nổi</string>
+    <string name="show_bubble">Hiện bong bóng trên màn hình</string>
+    <string name="bubble_help">• Chạm bong bóng: BẬT / TẮT AI\n• Giữ lâu: mở / thu gọn bảng gợi ý\n• Kéo: di chuyển bong bóng\nKhi BẬT, mỗi lần crush nhắn tin mới AI sẽ tự đọc và gợi ý.</string>
+    <string name="auto_mode">Tự gợi ý khi crush nhắn tin mới</string>
+    <string name="use_screenshot">Gửi kèm ảnh chụp màn hình cho AI (đọc chính xác hơn)</string>
+    <string name="screenshot_unsupported">Máy bạn chạy Android dưới 11 nên AI chỉ đọc được chữ, không chụp được màn hình.</string>
+    <string name="watch_all">Theo dõi mọi ứng dụng (không chỉ Messenger, Zalo, Instagram…)</string>
+
+    <string name="step_quick">💬 Tư vấn nhanh</string>
+    <string name="step_quick_desc">Không muốn dùng bong bóng? Dán đoạn chat vào đây để AI tư vấn.</string>
+    <string name="paste_chat">Dán đoạn chat (vd: Crush: tối nay rảnh ko?)</string>
+    <string name="your_question">Bạn muốn hỏi gì? (không bắt buộc)</string>
+    <string name="ask_ai">Hỏi AI</string>
+
+    <string name="privacy">🔒 Tin nhắn và ảnh màn hình chỉ được gửi tới Anthropic (Claude) khi bong bóng đang BẬT hoặc khi bạn bấm \"Hỏi AI\". App không lưu lịch sử chat của bạn. Chi phí gọi AI tính vào tài khoản Anthropic của bạn.</string>
+
+    <string name="need_accessibility_title">Cần bật Trợ năng</string>
+    <string name="need_accessibility_msg">Để bong bóng hiện lên, hãy bật \"Crush Coach – bong bóng gợi ý\" trong Cài đặt → Trợ năng. Bong bóng sẽ tự xuất hiện ngay sau khi bật.</string>
+    <string name="go_settings">Đi tới Cài đặt</string>
+    <string name="later">Để sau</string>
+
+    <string name="panel_title">💘 Crush Coach</string>
+    <string name="suggest_title">✨ Gợi ý trả lời</string>
+    <string name="tips_title">💡 Mẹo nhỏ</string>
+    <string name="answer_title">💬 AI trả lời bạn</string>
+    <string name="ask_hint">Hỏi riêng AI…</string>
+    <string name="copy">Sao chép</string>
+    <string name="insert">Chèn vào ô chat</string>
+    <string name="refresh">Gợi ý khác</string>
+    <string name="collapse">Thu gọn</string>
+    <string name="send">Gửi</string>
+    <string name="bubble_desc">Bong bóng Crush Coach</string>
+</resources>

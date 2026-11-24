@@ -64,17 +64,48 @@ class CrushAi internal constructor(private val client: AnthropicClient, private 
             )
         }
         content += BetaContentBlockParam.ofText(buildUserText(profile, request))
+        // Nhắn tin là việc cần nhanh: effort thấp cho phản hồi gọn, ít chờ.
+        return parseResult(call(SYSTEM_PROMPT, content, RESULT_SCHEMA, BetaOutputConfig.Effort.LOW))
+    }
 
+    /**
+     * Đọc tin nhắn mới trong ngày + sổ tay cũ, rồi viết lại sổ tay cô đọng và một dòng nhật ký.
+     * Chạy đồng bộ (blocking) — gọi từ luồng nền.
+     */
+    fun digest(
+        profile: CoachProfile,
+        chatTitle: String?,
+        old: CrushMemory?,
+        recentNotes: List<JournalNote>,
+        messages: List<LoggedMessage>,
+        choices: List<UsedSuggestion>,
+    ): DigestResult {
+        val text = DigestPrompt.build(profile, chatTitle, old, recentNotes, messages, choices)
+        // Mỗi ngày chạy một lần nên cho AI nghĩ kỹ hơn một chút.
+        val raw = call(
+            DIGEST_SYSTEM_PROMPT,
+            listOf(BetaContentBlockParam.ofText(text)),
+            DIGEST_SCHEMA,
+            BetaOutputConfig.Effort.MEDIUM,
+        )
+        return parseDigest(raw) ?: throw CoachException("AI trả sổ tay sai định dạng. Thử lại sau nhé.", retryable = true)
+    }
+
+    private fun call(
+        system: String,
+        content: List<BetaContentBlockParam>,
+        schema: BetaJsonOutputFormat.Schema,
+        effort: BetaOutputConfig.Effort,
+    ): String {
         val builder = MessageCreateParams.builder()
             .model(model)
             .maxTokens(16000L)
-            .system(SYSTEM_PROMPT)
+            .system(system)
             .addUserMessageOfContentBlockParams(content)
             .outputConfig(
                 BetaOutputConfig.builder()
-                    // Nhắn tin là việc cần nhanh: effort thấp cho phản hồi gọn, ít chờ.
-                    .effort(BetaOutputConfig.Effort.LOW)
-                    .format(BetaJsonOutputFormat.builder().schema(RESULT_SCHEMA).build())
+                    .effort(effort)
+                    .format(BetaJsonOutputFormat.builder().schema(schema).build())
                     .build()
             )
         if (AiModels.supportsServerFallback(model)) {
@@ -103,8 +134,8 @@ class CrushAi internal constructor(private val client: AnthropicClient, private 
             .mapNotNull { block -> block.text().orElse(null)?.text() }
             .joinToString("")
             .trim()
-        if (text.isEmpty()) throw CoachException("AI không trả lời gì cả. Thử lại nhé.")
-        return parseResult(text)
+        if (text.isEmpty()) throw CoachException("AI không trả lời gì cả. Thử lại nhé.", retryable = true)
+        return text
     }
 
     companion object {
@@ -124,6 +155,13 @@ class CrushAi internal constructor(private val client: AnthropicClient, private 
         }
 
         private val mapper = ObjectMapper()
+
+        internal fun parseDigest(raw: String): DigestResult? = try {
+            val node = mapper.readTree(raw.removePrefix("```json").removePrefix("```").removeSuffix("```").trim())
+            DigestResult(CrushMemory.fromNode(node), node.path("day_note").asText("").trim())
+        } catch (e: Exception) {
+            null
+        }
 
         internal fun parseResult(raw: String): CoachResult {
             val node: JsonNode = try {
@@ -149,9 +187,10 @@ class CrushAi internal constructor(private val client: AnthropicClient, private 
                 is PermissionDeniedException -> "API key này chưa được phép dùng model đã chọn."
                 is NotFoundException -> "Không tìm thấy model. Thử chọn model khác trong app."
                 is PaymentRequiredException -> "Tài khoản Anthropic đã hết credit. Nạp thêm tại console.anthropic.com."
-                is RateLimitException -> "Đang gọi AI hơi dồn dập, đợi vài giây rồi thử lại nhé."
+                is RateLimitException ->
+                    return CoachException("Đang gọi AI hơi dồn dập, đợi vài giây rồi thử lại nhé.", e, retryable = true)
                 is OverloadedException, is ServiceUnavailableException, is InternalServerException ->
-                    "Máy chủ AI đang bận, thử lại sau ít phút nhé."
+                    return CoachException("Máy chủ AI đang bận, thử lại sau ít phút nhé.", e, retryable = true)
                 is BadRequestException -> {
                     val detail = e.apiMessage().orElse("")
                     if (detail.contains("credit", ignoreCase = true))
@@ -160,7 +199,8 @@ class CrushAi internal constructor(private val client: AnthropicClient, private 
                 }
                 is AnthropicServiceException ->
                     "Lỗi từ máy chủ AI (${e.statusCode()}): ${e.apiMessage().orElse("")}"
-                is AnthropicIoException -> "Không kết nối được tới AI. Kiểm tra mạng nhé."
+                is AnthropicIoException ->
+                    return CoachException("Không kết nối được tới AI. Kiểm tra mạng nhé.", e, retryable = true)
                 else -> "Có lỗi xảy ra: ${e.message ?: e.javaClass.simpleName}"
             }
             return CoachException(msg, e)
@@ -180,6 +220,11 @@ class CrushAi internal constructor(private val client: AnthropicClient, private 
             appendLine("- Phong cách mình muốn: ${p.style.ifBlank { "tự nhiên" }}")
             if (p.notes.isNotBlank()) appendLine("- Ghi chú về crush: ${p.notes}")
             appendLine()
+            r.memory?.takeIf { it.isNotBlank() }?.let {
+                appendLine("SỔ TAY VỀ CRUSH (AI tự cô đọng từ các ngày trước — dùng để hiểu bối cảnh, không cần nhắc lại):")
+                appendLine(it)
+                appendLine()
+            }
             if (r.screenshotJpegBase64 != null) {
                 appendLine("Ảnh đính kèm là ảnh chụp màn hình hiện tại.")
             }
@@ -269,6 +314,50 @@ Nguyên tắc:
 - Nếu người dùng đang nhắn liền nhiều tin mà crush chưa trả lời, nhắc khéo trong "warning".
 - Nếu màn hình không phải một cuộc trò chuyện hoặc không đọc được tin nhắn, nói rõ trong "read" và vẫn đưa lời khuyên chung hữu ích.
 - Trong gợi ý trả lời, không bao giờ nhắc tới AI hay Crush Coach.
+
+Nếu có "Sổ tay về crush": đó là những gì đã rút ra từ các ngày trước. Hãy tận dụng để cá nhân hoá (sở thích, chuyện dang dở, kỷ niệm chung), áp dụng các cách đã hiệu quả và tránh những điều nên tránh. Khi sổ tay mâu thuẫn với tin nhắn trên màn hình, tin vào màn hình.
+""".trim()
+
+        private fun arrayProp(description: String) = mapOf(
+            "type" to "array",
+            "description" to description,
+            "items" to mapOf("type" to "string"),
+        )
+
+        private val DIGEST_SCHEMA: BetaJsonOutputFormat.Schema = BetaJsonOutputFormat.Schema.builder()
+            .putAdditionalProperty("type", JsonValue.from("object"))
+            .putAdditionalProperty(
+                "properties",
+                JsonValue.from(
+                    mapOf(
+                        "summary" to stringProp("Tổng quan mối quan hệ hiện tại, 2–4 câu."),
+                        "stage" to stringProp("Đánh giá giai đoạn và xu hướng (đang ấm lên, chững lại, nguội đi...), kèm lý do ngắn."),
+                        "about_crush" to arrayProp("Tối đa 15 điều đã biết chắc về crush: sở thích, tính cách, lịch sinh hoạt, người thân, chuyện đã kể, điều nhạy cảm."),
+                        "what_works" to arrayProp("Tối đa 8 cách nhắn đã khiến crush hào hứng (trả lời nhanh, dài, nhiều emoji, hỏi lại...)."),
+                        "what_to_avoid" to arrayProp("Tối đa 8 điều nên tránh vì crush phản ứng nhạt, khó chịu hoặc im lặng."),
+                        "open_threads" to arrayProp("Tối đa 6 chuyện đang dang dở cần nhớ: lời hẹn, câu hỏi chưa trả lời, sự kiện sắp tới."),
+                        "day_note" to stringProp("Nhật ký 1–2 câu về những gì diễn ra trong các tin nhắn mới."),
+                    )
+                )
+            )
+            .putAdditionalProperty(
+                "required",
+                JsonValue.from(listOf("summary", "stage", "about_crush", "what_works", "what_to_avoid", "open_threads", "day_note"))
+            )
+            .putAdditionalProperty("additionalProperties", JsonValue.from(false))
+            .build()
+
+        private val DIGEST_SYSTEM_PROMPT = """
+Bạn là "Crush Coach" — người bạn thân giàu EQ giúp người dùng ("Mình") nhắn tin với người họ thích ("Crush"). Mỗi ngày bạn đọc lại tin nhắn mới và cập nhật "Sổ tay về crush" — bản cô đọng duy nhất mà bạn sẽ đọc khi gợi ý trả lời sau này, thay cho toàn bộ lịch sử chat. Vì vậy sổ tay phải ngắn, chính xác và hữu ích cho việc ra quyết định.
+
+Cách cập nhật:
+1. Bắt đầu từ sổ tay cũ: giữ những gì vẫn đúng, sửa điều đã sai, gộp ý trùng, bỏ chi tiết vụn vặt không giúp gì cho việc nhắn tin.
+2. Thêm điều mới học được từ tin nhắn mới. Chỉ ghi điều có bằng chứng trong đoạn chat; không bịa, không suy diễn quá đà.
+3. Rút kinh nghiệm để mỗi ngày tư vấn giỏi hơn: tin nào của "Mình" (đặc biệt tin dùng gợi ý của app) khiến crush trả lời nhanh, dài, hào hứng → ghi vào "what_works"; tin nào khiến crush trả lời cụt, chậm hoặc im lặng → ghi vào "what_to_avoid". Dựa vào giờ giấc để nhận ra thói quen (vd: crush hay online buổi tối).
+4. Ghi lại chuyện dang dở để lần sau nhắc đúng lúc (lời hẹn, câu hỏi chưa trả lời, sự kiện sắp tới). Bỏ những chuyện đã xong.
+5. Viết "day_note" như nhật ký ngắn của ngày.
+
+Nguyên tắc: tôn trọng crush; nếu crush có dấu hiệu không thoải mái hoặc muốn dừng, ghi rõ để lần sau khuyên người dùng cho họ không gian. Viết tiếng Việt tự nhiên, gọn. Danh sách có giới hạn độ dài — ưu tiên điều quan trọng nhất.
 """.trim()
     }
 }

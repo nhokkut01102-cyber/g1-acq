@@ -40,6 +40,15 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("use_screenshot", false)
         set(v) = sp.edit { putBoolean("use_screenshot", v) }
 
+    /** Lưu tin nhắn với crush để AI cô đọng thành sổ tay. */
+    var memoryEnabled: Boolean
+        get() = sp.getBoolean(KEY_MEMORY, true)
+        set(v) = sp.edit { putBoolean(KEY_MEMORY, v) }
+
+    var dailyDigest: Boolean
+        get() = sp.getBoolean("daily_digest", true)
+        set(v) = sp.edit { putBoolean("daily_digest", v) }
+
     var watchAllApps: Boolean
         get() = sp.getBoolean("watch_all", false)
         set(v) = sp.edit { putBoolean("watch_all", v) }
@@ -73,6 +82,7 @@ class Prefs(context: Context) {
         const val KEY_API = "api_key"
         const val KEY_MODEL = "model"
         const val KEY_BUBBLE = "bubble_enabled"
+        const val KEY_MEMORY = "memory_enabled"
 
         val STAGES = listOf(
             "Mới quen",

@@ -23,6 +23,8 @@ import com.crushcoach.ai.CoachResult
 import com.crushcoach.ai.CrushAi
 import com.crushcoach.ai.IncomingDetector
 import com.crushcoach.ai.Side
+import com.crushcoach.memory.DigestScheduler
+import com.crushcoach.memory.MemoryStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -46,6 +48,7 @@ class CoachAccessibilityService : AccessibilityService(),
     private val main = Handler(Looper.getMainLooper())
     private val scope = MainScope()
     private lateinit var prefs: Prefs
+    private lateinit var store: MemoryStore
     private var bubble: BubbleController? = null
     private var panel: PanelController? = null
 
@@ -55,13 +58,17 @@ class CoachAccessibilityService : AccessibilityService(),
     private val detector = IncomingDetector()
     private var lastAutoAt = 0L
     private var lastResult: CoachResult? = null
+    /** Màn hình chat của lần phân tích gần nhất (ứng với gợi ý đang hiện trên bảng). */
+    private var lastSnap: ChatSnapshot? = null
     private val autoCheck = Runnable { checkForNewMessage() }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
         prefs = Prefs(this)
+        store = MemoryStore.get(this)
         prefs.sp.registerOnSharedPreferenceChangeListener(this)
+        DigestScheduler.sync(this)
         val themed = ContextThemeWrapper(this, R.style.Theme_CrushCoach_Overlay)
         bubble = BubbleController(this, themed, prefs, this)
         panel = PanelController(this, themed, this)
@@ -80,7 +87,7 @@ class CoachAccessibilityService : AccessibilityService(),
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (!active || event == null || !prefs.autoMode) return
+        if (!active || event == null || (!prefs.autoMode && !prefs.memoryEnabled)) return
         val pkg = event.packageName?.toString() ?: return
         if (pkg == packageName) return
         if (!prefs.watchAllApps && !ChatApps.isChat(pkg)) return
@@ -158,10 +165,12 @@ class CoachAccessibilityService : AccessibilityService(),
 
     override fun onCopy(text: String) {
         copy(text)
+        logChoice(text)
         toast("Đã sao chép ✨")
     }
 
     override fun onInsert(text: String) {
+        logChoice(text)
         if (ChatReader.insertText(this, text)) {
             toast("Đã chèn vào ô chat — xem lại rồi bấm gửi nhé")
             panel?.collapse()
@@ -175,12 +184,58 @@ class CoachAccessibilityService : AccessibilityService(),
         panel?.collapse()
     }
 
+    override fun onToggleMemory() {
+        val snap = lastSnap ?: return
+        scope.launch {
+            val crushName = prefs.crushName
+            val nowTracked = withContext(Dispatchers.IO) {
+                val tracked = !store.isTracked(snap.chatKey, snap.title, crushName)
+                store.setTracked(snap.chatKey, snap.title, tracked)
+                if (tracked) store.appendVisible(snap.chatKey, snap.appName, snap.title, snap.lines, System.currentTimeMillis())
+                tracked
+            }
+            panel?.setMemoryState(nowTracked)
+            toast(if (nowTracked) "📒 Sẽ ghi nhớ chat này để AI học dần" else "Đã tắt ghi nhớ chat này")
+        }
+    }
+
+    // ---- Sổ tay về crush ----
+
+    /**
+     * Lưu tin mới của chat đang mở nếu đó là chat với crush (trùng tên crush hoặc đã bấm 📌).
+     * Trả về true nếu chat này đang được ghi nhớ.
+     */
+    private suspend fun saveToMemory(snap: ChatSnapshot): Boolean {
+        if (!prefs.memoryEnabled || !snap.hasChatInput) return false
+        val crushName = prefs.crushName
+        val daily = prefs.dailyDigest
+        return withContext(Dispatchers.IO) {
+            if (!store.isTracked(snap.chatKey, snap.title, crushName)) return@withContext false
+            val now = System.currentTimeMillis()
+            store.appendVisible(snap.chatKey, snap.appName, snap.title, snap.lines, now)
+            // Lịch hằng ngày có thể bị máy hoãn; quá 1 ngày chưa cô đọng thì chạy bù.
+            if (daily && store.shouldDigest(snap.chatKey, now)) DigestScheduler.runSoon(applicationContext)
+            true
+        }
+    }
+
+    private fun logChoice(text: String) {
+        val snap = lastSnap ?: return
+        if (!prefs.memoryEnabled) return
+        val crushName = prefs.crushName
+        scope.launch(Dispatchers.IO) {
+            if (store.isTracked(snap.chatKey, snap.title, crushName)) {
+                store.logChoice(snap.chatKey, text, System.currentTimeMillis())
+            }
+        }
+    }
+
     // ---- Theo dõi tin nhắn mới ----
 
     private fun checkForNewMessage() {
         if (!active || job?.isActive == true) return
         val wait = AUTO_COOLDOWN_MS - (SystemClock.elapsedRealtime() - lastAutoAt)
-        if (wait > 0) {
+        if (wait > 0 && prefs.autoMode) {
             // Vừa gọi AI xong: đợi hết thời gian nghỉ rồi mới xem lại màn hình.
             main.removeCallbacks(autoCheck)
             main.postDelayed(autoCheck, wait)
@@ -188,8 +243,10 @@ class CoachAccessibilityService : AccessibilityService(),
         }
         val snap = ChatReader.read(this)
         if (!prefs.watchAllApps && !ChatApps.isChat(snap.packageName)) return
-        // Chỉ tự gợi ý trong màn hình trò chuyện (có ô nhập tin), không phải danh sách chat.
+        // Chỉ làm việc trong màn hình trò chuyện (có ô nhập tin), không phải danh sách chat.
         if (!snap.hasChatInput) return
+        scope.launch { saveToMemory(snap) }
+        if (!prefs.autoMode) return
         if (detector.update(snap.chatKey, snap.lines)) analyze(auto = true)
     }
 
@@ -214,7 +271,12 @@ class CoachAccessibilityService : AccessibilityService(),
             )
             try {
                 val snap = ChatReader.read(this@CoachAccessibilityService)
+                lastSnap = snap
                 detector.remember(snap.chatKey, snap.lines)
+                val tracked = saveToMemory(snap)
+                p.setMemoryState(if (prefs.memoryEnabled && snap.hasChatInput) tracked else null)
+                // Chỉ đọc phần đã cô đọng, không gửi lại cả lịch sử chat.
+                val memory = if (tracked) withContext(Dispatchers.IO) { store.memoryPrompt(snap.chatKey) } else null
                 lastAutoAt = SystemClock.elapsedRealtime()
                 // Ảnh tốn thêm token: chỉ gửi khi người dùng bật, hoặc khi chữ đọc được không đủ để hiểu.
                 val needShot = prefs.useScreenshot || snap.lines.none { it.side != Side.UNKNOWN }
@@ -231,6 +293,7 @@ class CoachAccessibilityService : AccessibilityService(),
                     screenshotJpegBase64 = shot,
                     question = question,
                     previousSuggestions = previous,
+                    memory = memory,
                 )
                 val model = prefs.model
                 val profile = prefs.profile()

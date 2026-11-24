@@ -37,13 +37,27 @@
     <string name="screenshot_unsupported">Máy bạn chạy Android dưới 11 nên AI chỉ đọc được chữ, không chụp được màn hình.</string>
     <string name="watch_all">Theo dõi mọi ứng dụng (không chỉ Messenger, Zalo, Instagram…)</string>
 
+    <string name="step_memory">5 · Sổ tay về crush 📒</string>
+    <string name="step_memory_desc">Khi bong bóng BẬT, app lưu tin nhắn của cuộc trò chuyện với crush ngay trên máy: chat có tên chứa tên crush ở mục 3, hoặc chat bạn bấm 📌 trong bảng gợi ý. Mỗi ngày (khoảng 23h) AI đọc tin mới và những gợi ý bạn đã dùng, rút kinh nghiệm rồi viết lại sổ tay cô đọng. Khi gợi ý, AI chỉ đọc sổ tay này và màn hình hiện tại, không đọc lại cả lịch sử.</string>
+    <string name="memory_enabled">Ghi nhớ tin nhắn với crush</string>
+    <string name="daily_digest">Tự cô đọng sổ tay mỗi ngày (khoảng 23h)</string>
+    <string name="digest_now">Cô đọng ngay</string>
+    <string name="clear_memory">Xoá toàn bộ dữ liệu đã lưu</string>
+    <string name="clear_memory_title">Xoá dữ liệu đã lưu?</string>
+    <string name="clear_memory_msg">Mọi tin nhắn đã lưu, sổ tay và nhật ký sẽ bị xoá khỏi máy. Không khôi phục được.</string>
+    <string name="delete">Xoá</string>
+    <string name="cancel">Huỷ</string>
+    <string name="memory_empty">Chưa có sổ tay. Hãy bật bong bóng khi nhắn với crush; sau khoảng một ngày (hoặc khi bấm "Cô đọng ngay") sổ tay đầu tiên sẽ xuất hiện ở đây.</string>
+    <string name="memory_on">📒 Đang ghi nhớ chat này · chạm để tắt</string>
+    <string name="memory_off">📌 Ghi nhớ chat này để AI học dần</string>
+
     <string name="step_quick">💬 Tư vấn nhanh</string>
     <string name="step_quick_desc">Không muốn dùng bong bóng? Dán đoạn chat vào đây để AI tư vấn.</string>
     <string name="paste_chat">Dán đoạn chat (vd: Crush: tối nay rảnh ko?)</string>
     <string name="your_question">Bạn muốn hỏi gì? (không bắt buộc)</string>
     <string name="ask_ai">Hỏi AI</string>
 
-    <string name="privacy">🔒 Tin nhắn và ảnh màn hình chỉ được gửi tới Anthropic (Claude) khi bong bóng đang BẬT hoặc khi bạn bấm \"Hỏi AI\". App không lưu lịch sử chat của bạn. Chi phí gọi AI tính vào tài khoản Anthropic của bạn.</string>
+    <string name="privacy">🔒 Tin nhắn và ảnh màn hình chỉ được gửi tới Anthropic (Claude) khi bong bóng đang BẬT, khi bạn bấm \"Hỏi AI\", và khi cô đọng sổ tay (chỉ gửi tin mới kể từ lần trước). Tin nhắn với crush được lưu ngay trên máy, không sao lưu lên mạng; bạn xoá được bất cứ lúc nào ở mục 5. Chi phí gọi AI tính vào tài khoản Anthropic của bạn.</string>
 
     <string name="need_accessibility_title">Cần bật Trợ năng</string>
     <string name="need_accessibility_msg">Để bong bóng hiện lên, hãy bật \"Crush Coach – bong bóng gợi ý\" trong Cài đặt → Trợ năng. Bong bóng sẽ tự xuất hiện ngay sau khi bật.</string>

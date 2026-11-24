@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -24,6 +25,9 @@ import com.crushcoach.ai.CoachRequest
 import com.crushcoach.ai.CrushAi
 import com.crushcoach.ai.Side
 import com.crushcoach.databinding.ActivityMainBinding
+import com.crushcoach.memory.DigestScheduler
+import com.crushcoach.memory.Digester
+import com.crushcoach.memory.MemoryStore
 import com.crushcoach.service.CoachAccessibilityService
 import com.crushcoach.ui.ResultView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -31,6 +35,9 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
 
@@ -105,6 +112,23 @@ class MainActivity : AppCompatActivity() {
         b.watchAll.isChecked = prefs.watchAllApps
         b.watchAll.setOnCheckedChangeListener { _, c -> prefs.watchAllApps = c }
 
+        // 5. Sổ tay về crush
+        b.memoryEnabled.isChecked = prefs.memoryEnabled
+        b.memoryEnabled.setOnCheckedChangeListener { _, c ->
+            prefs.memoryEnabled = c
+            b.dailyDigest.isEnabled = c
+            DigestScheduler.sync(this)
+        }
+        b.dailyDigest.isChecked = prefs.dailyDigest
+        b.dailyDigest.isEnabled = prefs.memoryEnabled
+        b.dailyDigest.setOnCheckedChangeListener { _, c ->
+            prefs.dailyDigest = c
+            DigestScheduler.sync(this)
+        }
+        b.btnDigestNow.setOnClickListener { digestNow() }
+        b.btnClearMemory.setOnClickListener { confirmClearMemory() }
+        DigestScheduler.sync(this)
+
         // Tư vấn nhanh
         b.btnQuickAsk.setOnClickListener { quickAsk() }
     }
@@ -112,6 +136,82 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refreshStatus()
+        refreshMemory()
+    }
+
+    private fun refreshMemory() {
+        lifecycleScope.launch {
+            val store = MemoryStore.get(this@MainActivity)
+            val (stats, memories) = withContext(Dispatchers.IO) {
+                store.stats() to store.allMemories().map { it to store.journal(it.chatKey, 3) }
+            }
+            val last = stats.lastDigestAt?.let { "lần cô đọng gần nhất: ${TIME_FMT.format(Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()))}" }
+                ?: "chưa cô đọng lần nào"
+            b.memoryStats.text = "Đã lưu ${stats.messages} tin · ${stats.undigested} tin chưa cô đọng · $last"
+            b.memoryList.removeAllViews()
+            if (memories.isEmpty()) {
+                b.memoryList.addView(memoryText(getString(R.string.memory_empty), muted = true))
+            }
+            memories.forEach { (m, notes) ->
+                b.memoryList.addView(memoryText("💬 ${m.title ?: "Cuộc trò chuyện"}", bold = true))
+                val body = buildString {
+                    append(m.memory.toDisplayText())
+                    if (notes.isNotEmpty()) {
+                        append("\n\n📔 Nhật ký gần đây:")
+                        notes.forEach { append("\n• ${it.day}: ${it.note}") }
+                    }
+                }
+                b.memoryList.addView(memoryText(body))
+            }
+        }
+    }
+
+    private fun memoryText(text: String, bold: Boolean = false, muted: Boolean = false) = TextView(this).apply {
+        this.text = text
+        textSize = if (bold) 15f else 14f
+        setLineSpacing(0f, 1.15f)
+        setPadding(0, (10 * resources.displayMetrics.density).toInt(), 0, 0)
+        setTextColor(ContextCompat.getColor(context, if (muted) R.color.ink_muted else R.color.ink))
+        if (bold) setTypeface(typeface, android.graphics.Typeface.BOLD)
+        setTextIsSelectable(true)
+    }
+
+    private fun digestNow() {
+        if (prefs.apiKey.isBlank()) {
+            Toast.makeText(this, "Chưa có API key ở mục 1", Toast.LENGTH_SHORT).show()
+            return
+        }
+        b.btnDigestNow.isEnabled = false
+        b.btnDigestNow.text = "Đang cô đọng…"
+        lifecycleScope.launch {
+            val msg = try {
+                val n = Digester(this@MainActivity).runAll()
+                if (n == 0) "Không có tin mới để cô đọng." else "Đã cô đọng $n tin vào sổ tay 📒"
+            } catch (e: CoachException) {
+                e.message ?: "Có lỗi xảy ra."
+            } catch (e: Exception) {
+                "Có lỗi xảy ra: ${e.message ?: e.javaClass.simpleName}"
+            }
+            b.btnDigestNow.isEnabled = true
+            b.btnDigestNow.setText(R.string.digest_now)
+            Toast.makeText(this@MainActivity, msg, Toast.LENGTH_LONG).show()
+            refreshMemory()
+        }
+    }
+
+    private fun confirmClearMemory() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.clear_memory_title)
+            .setMessage(R.string.clear_memory_msg)
+            .setPositiveButton(R.string.delete) { _, _ ->
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) { MemoryStore.get(this@MainActivity).clearAll() }
+                    Toast.makeText(this@MainActivity, "Đã xoá dữ liệu đã lưu", Toast.LENGTH_SHORT).show()
+                    refreshMemory()
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun refreshStatus() {
@@ -191,6 +291,10 @@ class MainActivity : AppCompatActivity() {
     private fun bindText(field: EditText, value: String, save: (String) -> Unit) {
         field.setText(value)
         field.doAfterTextChanged { save(it?.toString().orEmpty()) }
+    }
+
+    private companion object {
+        val TIME_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm dd/MM")
     }
 
     private fun setupDropdown(

@@ -29,6 +29,8 @@ data class CoachRequest(
     val screenshotJpegBase64: String? = null,
     val question: String? = null,
     val previousSuggestions: List<String> = emptyList(),
+    /** Sổ tay cô đọng về crush (nếu có) — AI chỉ đọc phần này thay vì cả lịch sử chat. */
+    val memory: String? = null,
 )
 
 data class Suggestion(val style: String, val text: String, val why: String)
@@ -43,4 +45,9 @@ data class CoachResult(
 )
 
 /** Lỗi đã được dịch sang câu tiếng Việt dễ hiểu để hiện thẳng cho người dùng. */
-class CoachException(message: String, cause: Throwable? = null) : Exception(message, cause)
+class CoachException(
+    message: String,
+    cause: Throwable? = null,
+    /** Lỗi tạm thời (mạng, máy chủ bận…) — thử lại sau là được. */
+    val retryable: Boolean = false,
+) : Exception(message, cause)

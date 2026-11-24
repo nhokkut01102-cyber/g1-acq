@@ -324,6 +324,62 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- 5. Sổ tay về crush -->
+        <com.google.android.material.card.MaterialCardView style="@style/Card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/CardTitle"
+                    android:text="@string/step_memory" />
+
+                <TextView
+                    style="@style/CardBody"
+                    android:text="@string/step_memory_desc" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/memoryEnabled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/memory_enabled" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/dailyDigest"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/daily_digest" />
+
+                <TextView
+                    android:id="@+id/memoryStats"
+                    style="@style/CardBody"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:id="@+id/memoryList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDigestNow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/digest_now" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnClearMemory"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/clear_memory" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Tư vấn nhanh không cần bong bóng -->
         <com.google.android.material.card.MaterialCardView style="@style/Card">
 

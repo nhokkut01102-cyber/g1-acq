@@ -27,6 +27,7 @@ class PanelController(
         fun onCopy(text: String)
         fun onInsert(text: String)
         fun onCollapse()
+        fun onToggleMemory()
     }
 
     private val wm = context.getSystemService(WindowManager::class.java)
@@ -54,6 +55,7 @@ class PanelController(
 
         b.btnRefresh.setOnClickListener { listener.onRefresh() }
         b.btnCollapse.setOnClickListener { listener.onCollapse() }
+        b.memoryToggle.setOnClickListener { listener.onToggleMemory() }
         b.btnAsk.setOnClickListener { submitQuestion() }
         b.askInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
@@ -111,6 +113,26 @@ class PanelController(
         resultView?.show(result, listener::onCopy, listener::onInsert)
         b.scroll.scrollTo(0, 0)
         reveal()
+    }
+
+    /**
+     * Nút ghi nhớ của chat đang mở: true = đang ghi nhớ, false = chưa, null = ẩn (không phải màn hình chat).
+     */
+    fun setMemoryState(tracked: Boolean?) {
+        val b = binding ?: return
+        when (tracked) {
+            null -> b.memoryToggle.visibility = View.GONE
+            true -> {
+                b.memoryToggle.visibility = View.VISIBLE
+                b.memoryToggle.text = context.getString(R.string.memory_on)
+                b.memoryToggle.setBackgroundResource(R.drawable.chip_bg)
+            }
+            false -> {
+                b.memoryToggle.visibility = View.VISIBLE
+                b.memoryToggle.text = context.getString(R.string.memory_off)
+                b.memoryToggle.setBackgroundResource(R.drawable.chip_question)
+            }
+        }
     }
 
     /** Hiện lại bảng với nội dung cũ. */

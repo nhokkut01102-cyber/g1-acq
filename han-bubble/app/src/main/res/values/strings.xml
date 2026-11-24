@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hàn Bubble</string>
+    <string name="accessibility_label">Hàn Bubble – dịch câu sang tiếng Hàn</string>
+    <string name="accessibility_desc">Hàn Bubble dùng Trợ năng để: hiện bong bóng nổi, đọc câu bạn đang gõ trong ô nhập (chỉ khi bong bóng đang BẬT, không bao giờ đọc ô mật khẩu) rồi gửi câu đó tới Anthropic (Claude) để dịch sang tiếng Hàn, tô màu từ loại và giải thích ngữ pháp. Câu đã dịch được lưu trên máy trong Sổ học.</string>
+
+    <string name="tagline">Viết tiếng Việt, học tiếng Hàn mỗi ngày 🇰🇷</string>
+    <string name="show_bubble">Hiện bong bóng trên màn hình</string>
+    <string name="bubble_help">• Chạm bong bóng: BẬT / TẮT dịch\n• Giữ lâu: hiện lại câu dịch gần nhất\n• Kéo: di chuyển bong bóng\nKhi BẬT, mỗi câu bạn gõ xong ở bất kỳ app nào (kết thúc bằng . ! ? hoặc ngừng gõ vài giây, hoặc vừa bấm gửi) sẽ được dịch sang tiếng Hàn trong một khung riêng. Bấm ✕ để đóng khung.</string>
+    <string name="status_on">✅ Đã bật Trợ năng</string>
+    <string name="status_off">⚠️ Chưa bật Trợ năng</string>
+
+    <string name="step_ai">1 · Kết nối AI</string>
+    <string name="step_ai_desc">Hàn Bubble dùng Claude của Anthropic để dịch, tô màu từ loại và giải thích ngữ pháp. Dán API key (có thể dùng chung key với Crush Coach). Key chỉ lưu trên máy bạn.</string>
+    <string name="api_key">API key (sk-ant-…)</string>
+    <string name="get_key">Lấy API key</string>
+    <string name="model">Model AI</string>
+
+    <string name="step_permission">2 · Cấp quyền Trợ năng</string>
+    <string name="step_permission_desc">Bật \"Hàn Bubble – dịch câu sang tiếng Hàn\" trong Cài đặt → Trợ năng. Quyền này giúp app vẽ bong bóng và đọc câu bạn đang gõ để dịch.</string>
+    <string name="restricted_hint">Nếu mục này bị mờ (Android 13 trở lên, cài APK ngoài): Cài đặt → Ứng dụng → Hàn Bubble → ⋮ (góc phải) → \"Cho phép cài đặt bị hạn chế\", rồi bật lại.</string>
+    <string name="open_accessibility">Mở cài đặt Trợ năng</string>
+    <string name="open_app_info">Mở thông tin ứng dụng</string>
+
+    <string name="step_options">3 · Tuỳ chọn dịch</string>
+    <string name="style">Văn phong tiếng Hàn</string>
+    <string name="show_roman">Hiện phiên âm Latinh</string>
+    <string name="expand_details">Mở sẵn phần từ loại &amp; ngữ pháp trong khung dịch</string>
+
+    <string name="legend_title">🎨 Bảng màu từ loại</string>
+    <string name="history_title">📚 Sổ học</string>
+    <string name="open_history">Mở Sổ học</string>
+
+    <string name="quick_title">✍️ Thử dịch nhanh</string>
+    <string name="quick_hint">Gõ một câu tiếng Việt…</string>
+    <string name="translate">Dịch sang tiếng Hàn</string>
+
+    <string name="privacy">🔒 Chỉ khi bong bóng đang BẬT (hoặc khi bấm \"Dịch\"), câu bạn gõ mới được gửi tới Anthropic (Claude). App không bao giờ đọc ô mật khẩu. Câu đã dịch được lưu trên máy (không sao lưu lên mạng) và xoá được trong Sổ học. Chi phí gọi AI tính vào tài khoản Anthropic của bạn.</string>
+
+    <string name="need_accessibility_title">Cần bật Trợ năng</string>
+    <string name="need_accessibility_msg">Để bong bóng hiện lên, hãy bật \"Hàn Bubble – dịch câu sang tiếng Hàn\" trong Cài đặt → Trợ năng. Bong bóng sẽ tự xuất hiện ngay sau khi bật.</string>
+    <string name="go_settings">Đi tới Cài đặt</string>
+    <string name="later">Để sau</string>
+
+    <string name="box_title">🇰🇷 Hàn Bubble</string>
+    <string name="details_show">▾ Từ loại &amp; ngữ pháp</string>
+    <string name="details_hide">▴ Thu gọn</string>
+    <string name="speak">Đọc tiếng Hàn</string>
+    <string name="close">Đóng</string>
+    <string name="back">Quay lại</string>
+    <string name="bubble_desc">Bong bóng Hàn Bubble</string>
+
+    <string name="clear_all">Xoá hết</string>
+    <string name="clear_all_title">Xoá toàn bộ Sổ học?</string>
+    <string name="clear_all_msg">Mọi câu đã lưu sẽ bị xoá khỏi máy. Không khôi phục được.</string>
+    <string name="delete">Xoá</string>
+    <string name="cancel">Huỷ</string>
+    <string name="history_empty">Sổ học còn trống. Bật bong bóng rồi nhắn tin như bình thường — mỗi câu bạn viết sẽ được dịch và lưu vào đây.</string>
+</resources>

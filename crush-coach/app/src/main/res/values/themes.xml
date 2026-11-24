@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.CrushCoach" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/pink_deep</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/pink_soft</item>
+        <item name="colorOnPrimaryContainer">@color/ink</item>
+        <item name="colorSecondary">@color/pink</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/ink</item>
+        <item name="android:colorBackground">@color/blush</item>
+        <item name="android:statusBarColor">@color/blush</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <!-- Theme cho bong bóng và bảng gợi ý vẽ đè lên app khác. -->
+    <style name="Theme.CrushCoach.Overlay" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/pink_deep</item>
+        <item name="colorAccent">@color/pink_deep</item>
+    </style>
+</resources>

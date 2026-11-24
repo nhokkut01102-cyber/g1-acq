@@ -27,17 +27,17 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.time.Duration
 
-/** Các model cho người dùng chọn trong app. Mặc định là model mạnh nhất. */
+/** Các model cho người dùng chọn trong app. Mặc định là model rẻ nhất (người dùng chọn tiết kiệm). */
 object AiModels {
     data class Option(val id: String, val label: String)
 
     val options = listOf(
-        Option("claude-opus-5-5", "Claude Opus 5.5 — tinh tế nhất (mặc định)"),
-        Option("claude-sonnet-5-5", "Claude Sonnet 5.5 — nhanh hơn"),
-        Option("claude-haiku-5-5", "Claude Haiku 5.5 — nhanh & rẻ nhất"),
+        Option("claude-haiku-5-5", "Claude Haiku 5.5 — rẻ nhất, ~15đ/lần (mặc định)"),
+        Option("claude-sonnet-5-5", "Claude Sonnet 5.5 — khéo hơn, ~300đ/lần"),
+        Option("claude-opus-5-5", "Claude Opus 5.5 — tinh tế nhất, ~600đ/lần"),
     )
 
-    const val DEFAULT = "claude-opus-5-5"
+    const val DEFAULT = "claude-haiku-5-5"
 
     /** Haiku không có chuyển model dự phòng phía máy chủ khi bị từ chối. */
     fun supportsServerFallback(model: String) = !model.startsWith("claude-haiku")

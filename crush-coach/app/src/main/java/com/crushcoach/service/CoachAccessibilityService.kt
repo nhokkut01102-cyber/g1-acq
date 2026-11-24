@@ -22,6 +22,7 @@ import com.crushcoach.ai.CoachRequest
 import com.crushcoach.ai.CoachResult
 import com.crushcoach.ai.CrushAi
 import com.crushcoach.ai.IncomingDetector
+import com.crushcoach.ai.Side
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -215,7 +216,9 @@ class CoachAccessibilityService : AccessibilityService(),
                 val snap = ChatReader.read(this@CoachAccessibilityService)
                 detector.remember(snap.chatKey, snap.lines)
                 lastAutoAt = SystemClock.elapsedRealtime()
-                val shot = if (prefs.useScreenshot && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // Ảnh tốn thêm token: chỉ gửi khi người dùng bật, hoặc khi chữ đọc được không đủ để hiểu.
+                val needShot = prefs.useScreenshot || snap.lines.none { it.side != Side.UNKNOWN }
+                val shot = if (needShot && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     captureScreen()
                 } else {
                     null

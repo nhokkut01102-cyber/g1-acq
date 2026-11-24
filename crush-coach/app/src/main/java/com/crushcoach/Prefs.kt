@@ -36,7 +36,8 @@ class Prefs(context: Context) {
         set(v) = sp.edit { putBoolean("auto_mode", v) }
 
     var useScreenshot: Boolean
-        get() = sp.getBoolean("use_screenshot", true)
+        // Mặc định tắt cho rẻ; app vẫn tự gửi ảnh khi không đọc được chữ trên màn hình.
+        get() = sp.getBoolean("use_screenshot", false)
         set(v) = sp.edit { putBoolean("use_screenshot", v) }
 
     var watchAllApps: Boolean

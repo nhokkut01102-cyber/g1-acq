@@ -31,15 +31,22 @@ Không muốn dùng bong bóng? Mục **💬 Tư vấn nhanh** trong app cho ph�
 ## Nó hoạt động thế nào
 
 - **Bong bóng & bảng gợi ý** là cửa sổ của dịch vụ Trợ năng (`TYPE_ACCESSIBILITY_OVERLAY`), nên không cần thêm quyền "hiển thị trên ứng dụng khác".
-- **Đọc tin nhắn**: lấy chữ trên màn hình qua Trợ năng. Tin nằm sát mép phải được coi là của mình, sát mép trái là của crush, ở giữa là mốc thời gian. Từ Android 11, app còn **chụp màn hình** gửi kèm để AI đọc chính xác hơn (bong bóng và bảng được ẩn đi lúc chụp).
-- **AI**: gọi Claude qua [SDK Java chính thức của Anthropic](https://github.com/anthropics/anthropic-java), trả về JSON có cấu trúc (cảm xúc, phân tích, 3 gợi ý, mẹo, câu trả lời, cảnh báo). Mặc định dùng Claude Opus 5.5 với effort thấp để trả lời nhanh; đổi được sang Sonnet 5.5 hoặc Haiku 5.5. Với Opus / Sonnet, app bật chế độ tự chuyển model dự phòng phía máy chủ nếu bộ lọc an toàn từ chối nhầm.
+- **Đọc tin nhắn**: lấy chữ trên màn hình qua Trợ năng. Tin nằm sát mép phải được coi là của mình, sát mép trái là của crush, ở giữa là mốc thời gian. Từ Android 11, app có thể **chụp màn hình** gửi kèm để AI đọc chính xác hơn (bong bóng và bảng được ẩn đi lúc chụp). Mặc định app chỉ chụp khi không đọc được chữ; bật "Luôn gửi kèm ảnh chụp màn hình" nếu muốn chính xác hơn.
+- **AI**: gọi Claude qua [SDK Java chính thức của Anthropic](https://github.com/anthropics/anthropic-java), trả về JSON có cấu trúc (cảm xúc, phân tích, 3 gợi ý, mẹo, câu trả lời, cảnh báo). Mặc định dùng **Claude Haiku 5.5** (rẻ nhất) với effort thấp để trả lời nhanh; đổi được sang Sonnet 5.5 hoặc Opus 5.5 nếu muốn gợi ý tinh tế hơn. Với Opus / Sonnet, app bật chế độ tự chuyển model dự phòng phía máy chủ nếu bộ lọc an toàn từ chối nhầm.
 - **Chèn câu trả lời**: ghi chữ vào ô nhập tin bằng `ACTION_SET_TEXT`. App nào không cho thì câu đó được sao chép để cậu tự dán.
 
 ## Quyền riêng tư & chi phí
 
 - Chỉ khi bong bóng **BẬT** (hoặc khi bấm "Hỏi AI"), chữ và ảnh màn hình mới được gửi tới Anthropic. Khi TẮT, app không đọc gì cả.
 - App không lưu lịch sử chat. API key chỉ lưu trên máy (đã tắt sao lưu).
-- Mỗi lần gợi ý tốn một ít tiền trên tài khoản Anthropic của cậu (ảnh màn hình chiếm phần lớn). Muốn rẻ hơn: chọn Haiku 5.5 hoặc tắt "Gửi kèm ảnh chụp màn hình".
+- API của Anthropic tính tiền riêng, **không** nằm trong gói Claude Pro/Max: cần nạp credit tại console.anthropic.com. Nên đặt hạn mức chi tiêu trong mục Limits của Console.
+- Chi phí ước tính mỗi lần gợi ý (chưa đo thực tế):
+
+  | Model | Không gửi ảnh | Có gửi ảnh |
+  |---|---|---|
+  | Haiku 5.5 (mặc định) | ~10–15đ | ~15–20đ |
+  | Sonnet 5.5 | ~200đ | ~300–400đ |
+  | Opus 5.5 | ~400đ | ~500–800đ |
 
 ## Build từ mã nguồn
 

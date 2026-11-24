@@ -32,7 +32,8 @@
     <string name="show_bubble">Hiện bong bóng trên màn hình</string>
     <string name="bubble_help">• Chạm bong bóng: BẬT / TẮT AI\n• Giữ lâu: mở / thu gọn bảng gợi ý\n• Kéo: di chuyển bong bóng\nKhi BẬT, mỗi lần crush nhắn tin mới AI sẽ tự đọc và gợi ý.</string>
     <string name="auto_mode">Tự gợi ý khi crush nhắn tin mới</string>
-    <string name="use_screenshot">Gửi kèm ảnh chụp màn hình cho AI (đọc chính xác hơn)</string>
+    <string name="use_screenshot">Luôn gửi kèm ảnh chụp màn hình (đọc chính xác hơn, tốn thêm chút)</string>
+    <string name="screenshot_hint">Khi tắt, app chỉ gửi chữ đọc được trên màn hình, và chỉ chụp ảnh khi không đọc được chữ. Với Haiku 5.5, mỗi ảnh chỉ tốn thêm khoảng 5đ.</string>
     <string name="screenshot_unsupported">Máy bạn chạy Android dưới 11 nên AI chỉ đọc được chữ, không chụp được màn hình.</string>
     <string name="watch_all">Theo dõi mọi ứng dụng (không chỉ Messenger, Zalo, Instagram…)</string>
 

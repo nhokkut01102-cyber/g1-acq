@@ -13,6 +13,8 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.crushcoach.ai.AiModels
@@ -40,6 +42,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
+        // Android 15 vẽ tràn viền: chừa chỗ cho thanh trạng thái, thanh điều hướng và bàn phím.
+        ViewCompat.setOnApplyWindowInsetsListener(b.root) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
         prefs = Prefs(this)
         quickResult = ResultView(b.quickResult)
 

@@ -54,15 +54,15 @@ class BubbleController(
         val b = OverlayBubbleBinding.inflate(LayoutInflater.from(themed))
         val size = screenSize()
         val p = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            dp(BUBBLE_DP),
+            dp(BUBBLE_DP),
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = prefs.bubbleX.takeIf { it >= 0 } ?: (size.first - dp(76))
+            x = prefs.bubbleX.takeIf { it >= 0 } ?: (size.first - dp(BUBBLE_DP))
             y = prefs.bubbleY.takeIf { it >= 0 } ?: (size.second * 0.35f).toInt()
         }
         clamp(p)
@@ -195,7 +195,7 @@ class BubbleController(
 
     private fun snapToEdge(v: View, p: WindowManager.LayoutParams) {
         val (w, _) = screenSize()
-        val bubbleW = v.width.takeIf { it > 0 } ?: dp(76)
+        val bubbleW = v.width.takeIf { it > 0 } ?: dp(BUBBLE_DP)
         val target = if (p.x + bubbleW / 2 < w / 2) 0 else w - bubbleW
         snapAnim = ValueAnimator.ofInt(p.x, target).apply {
             duration = 220
@@ -212,7 +212,7 @@ class BubbleController(
 
     private fun clamp(p: WindowManager.LayoutParams) {
         val (w, h) = screenSize()
-        p.x = p.x.coerceIn(0, (w - dp(76)).coerceAtLeast(0))
+        p.x = p.x.coerceIn(0, (w - dp(BUBBLE_DP)).coerceAtLeast(0))
         p.y = p.y.coerceIn(0, (h - dp(96)).coerceAtLeast(0))
     }
 
@@ -222,4 +222,8 @@ class BubbleController(
     }
 
     private fun dp(v: Int) = (v * context.resources.displayMetrics.density).toInt()
+
+    private companion object {
+        const val BUBBLE_DP = 76
+    }
 }

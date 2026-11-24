@@ -88,3 +88,39 @@ object ChatParser {
     /** Bên của tin nhắn cuối cùng xác định được bên (bỏ qua dòng ở giữa). */
     fun lastSide(parsed: ParsedChat): Side? = parsed.lines.lastOrNull { it.side != Side.UNKNOWN }?.side
 }
+
+/**
+ * Phân biệt "crush vừa nhắn tin mới" với việc mình cuộn lên xem tin cũ hay chuyển sang chat khác.
+ * Tin mới = dòng cuối là của crush, chưa từng thấy, và được nối thêm SAU dòng cuối của lần đọc trước.
+ */
+class IncomingDetector(private val capacity: Int = 600) {
+    private val seen = LinkedHashSet<String>()
+    private var prevChat: String? = null
+    private var prevTail: String? = null
+
+    /** Ghi nhận màn hình hiện tại; trả về true nếu có tin mới của crush cần gợi ý. */
+    fun update(chatKey: String, lines: List<ChatLine>): Boolean {
+        if (lines.isEmpty()) return false
+        val last = lines.lastOrNull { it.side != Side.UNKNOWN }
+        val texts = lines.map { it.text }
+        val sameChat = chatKey == prevChat
+        val appended = !sameChat || prevTail == null || prevTail in texts.dropLast(1)
+        val isNew = last != null && last.side == Side.THEM && "$chatKey|${last.text}" !in seen && appended
+        remember(chatKey, lines)
+        return isNew
+    }
+
+    fun remember(chatKey: String, lines: List<ChatLine>) {
+        if (lines.isEmpty()) return
+        lines.forEach { seen.add("$chatKey|${it.text}") }
+        while (seen.size > capacity) seen.remove(seen.first())
+        prevChat = chatKey
+        prevTail = lines.last().text
+    }
+
+    fun reset() {
+        seen.clear()
+        prevChat = null
+        prevTail = null
+    }
+}

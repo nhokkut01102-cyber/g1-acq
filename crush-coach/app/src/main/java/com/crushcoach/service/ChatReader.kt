@@ -20,7 +20,11 @@ data class ChatSnapshot(
     val draft: String?,
     val signature: String?,
     val lastSide: Side?,
-)
+    /** Có ô nhập tin ở nửa dưới màn hình, tức là đang ở trong một cuộc trò chuyện. */
+    val hasChatInput: Boolean,
+) {
+    val chatKey get() = "$packageName|$title"
+}
 
 /** Đọc cây giao diện của app chat qua Trợ năng, và chèn chữ vào ô nhập tin. */
 object ChatReader {
@@ -52,7 +56,7 @@ object ChatReader {
 
     fun read(service: AccessibilityService): ChatSnapshot {
         val root = findChatRoot(service)
-            ?: return ChatSnapshot(null, "Không rõ", null, emptyList(), null, null, null)
+            ?: return ChatSnapshot(null, "Không rõ", null, emptyList(), null, null, null, false)
         val pkg = root.packageName?.toString()
 
         val frame = Rect().also { root.getBoundsInScreen(it) }
@@ -100,6 +104,7 @@ object ChatReader {
             draft = draft,
             signature = ChatParser.signature(pkg, parsed),
             lastSide = ChatParser.lastSide(parsed),
+            hasChatInput = (inputTop ?: -1) > frame.height() / 2,
         )
     }
 

@@ -21,7 +21,7 @@ import com.crushcoach.ai.CoachException
 import com.crushcoach.ai.CoachRequest
 import com.crushcoach.ai.CoachResult
 import com.crushcoach.ai.CrushAi
-import com.crushcoach.ai.Side
+import com.crushcoach.ai.IncomingDetector
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -51,7 +51,7 @@ class CoachAccessibilityService : AccessibilityService(),
     /** Công tắc trên bong bóng: chỉ khi BẬT app mới đọc màn hình và gọi AI. */
     private var active = false
     private var job: Job? = null
-    private var lastSignature: String? = null
+    private val detector = IncomingDetector()
     private var lastAutoAt = 0L
     private var lastResult: CoachResult? = null
     private val autoCheck = Runnable { checkForNewMessage() }
@@ -136,7 +136,7 @@ class CoachAccessibilityService : AccessibilityService(),
             active = false
             job?.cancel()
             main.removeCallbacks(autoCheck)
-            lastSignature = null
+            detector.reset()
             panel?.collapse()
             bubble?.setState(BubbleState.OFF)
         }
@@ -178,22 +178,18 @@ class CoachAccessibilityService : AccessibilityService(),
 
     private fun checkForNewMessage() {
         if (!active || job?.isActive == true) return
-        val snap = ChatReader.read(this)
-        if (!prefs.watchAllApps && !ChatApps.isChat(snap.packageName)) return
-        val sig = snap.signature ?: return
-        if (sig == lastSignature) return
-        if (snap.lastSide != Side.THEM) {
-            // Tin cuối là của mình (vừa gửi xong): ghi nhận, không gợi ý.
-            lastSignature = sig
-            return
-        }
         val wait = AUTO_COOLDOWN_MS - (SystemClock.elapsedRealtime() - lastAutoAt)
         if (wait > 0) {
+            // Vừa gọi AI xong: đợi hết thời gian nghỉ rồi mới xem lại màn hình.
             main.removeCallbacks(autoCheck)
             main.postDelayed(autoCheck, wait)
             return
         }
-        analyze(auto = true)
+        val snap = ChatReader.read(this)
+        if (!prefs.watchAllApps && !ChatApps.isChat(snap.packageName)) return
+        // Chỉ tự gợi ý trong màn hình trò chuyện (có ô nhập tin), không phải danh sách chat.
+        if (!snap.hasChatInput) return
+        if (detector.update(snap.chatKey, snap.lines)) analyze(auto = true)
     }
 
     private fun analyze(question: String? = null, regenerate: Boolean = false, auto: Boolean = false) {
@@ -217,7 +213,7 @@ class CoachAccessibilityService : AccessibilityService(),
             )
             try {
                 val snap = ChatReader.read(this@CoachAccessibilityService)
-                lastSignature = snap.signature
+                detector.remember(snap.chatKey, snap.lines)
                 lastAutoAt = SystemClock.elapsedRealtime()
                 val shot = if (prefs.useScreenshot && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     captureScreen()
@@ -261,8 +257,8 @@ class CoachAccessibilityService : AccessibilityService(),
                 takeScreenshot(
                     Display.DEFAULT_DISPLAY,
                     mainExecutor,
-                    object : TakeScreenshotCallback {
-                        override fun onSuccess(result: ScreenshotResult) {
+                    object : AccessibilityService.TakeScreenshotCallback {
+                        override fun onSuccess(result: AccessibilityService.ScreenshotResult) {
                             val hb = result.hardwareBuffer
                             val bmp = try {
                                 Bitmap.wrapHardwareBuffer(hb, result.colorSpace)?.let { hw ->

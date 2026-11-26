@@ -1,0 +1,4 @@
+.godot/
+*.apk
+*.idsig
+export_credentials.cfg
